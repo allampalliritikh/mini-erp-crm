@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getChallan, confirmChallan, cancelChallan } from "../../api/challan.api";
+import { getChallan, confirmChallan, cancelChallan, downloadChallanPdf } from "../../api/challan.api";
 
 export default function ChallanDetail() {
   const { id } = useParams();
@@ -8,6 +8,7 @@ export default function ChallanDetail() {
   const [challan, setChallan] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -52,6 +53,28 @@ export default function ChallanDetail() {
     }
   }
 
+  async function handleDownloadPdf() {
+    if (!id) return;
+    setError("");
+    setPdfLoading(true);
+    try {
+      const res = await downloadChallanPdf(id);
+      const blob = new Blob([res.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `challan-${challan.challanNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      setError("Failed to download PDF");
+    } finally {
+      setPdfLoading(false);
+    }
+  }
+
   if (loading) return <div className="p-8 text-gray-500">Loading...</div>;
   if (!challan) return <div className="p-8 text-gray-500">Challan not found.</div>;
 
@@ -75,9 +98,18 @@ export default function ChallanDetail() {
             {new Date(challan.createdAt).toLocaleString()}
           </p>
         </div>
-        <span className={`px-3 py-1 text-sm rounded ${statusColor[challan.status]}`}>
-          {challan.status}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className={`px-3 py-1 text-sm rounded ${statusColor[challan.status]}`}>
+            {challan.status}
+          </span>
+          <button
+            onClick={handleDownloadPdf}
+            disabled={pdfLoading}
+            className="border border-gray-300 text-sm px-3 py-1.5 rounded hover:bg-gray-50 disabled:opacity-50"
+          >
+            {pdfLoading ? "Preparing..." : "Download PDF"}
+          </button>
+        </div>
       </div>
 
       {error && (

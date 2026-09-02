@@ -6,6 +6,7 @@ import {
   confirmChallan,
   cancelChallan,
 } from "./challan.service";
+import { streamChallanPdf } from "../../utils/generateChallanPdf";
 
 export async function create(req: Request, res: Response, next: NextFunction) {
   try {
@@ -57,6 +58,15 @@ export async function cancel(req: Request, res: Response, next: NextFunction) {
   try {
     const challan = await cancelChallan(req.params.id);
     res.status(200).json({ success: true, data: challan });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function exportPdf(req: Request, res: Response, next: NextFunction) {
+  try {
+    const challan = await getChallanById(req.params.id);
+    streamChallanPdf(res, challan as any);
   } catch (err) {
     next(err);
   }

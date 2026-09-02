@@ -19,3 +19,7 @@ export function confirmChallan(id: string) {
 export function cancelChallan(id: string) {
   return api.post(`/challans/${id}/cancel`);
 }
+
+export function downloadChallanPdf(id: string) {
+  return api.get(`/challans/${id}/pdf`, { responseType: "blob" });
+}
