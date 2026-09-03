@@ -10,6 +10,7 @@ interface Product {
   unitPrice: string;
   stock: number;
   minStock: number;
+  imageUrl: string | null;
 }
 
 export default function ProductList() {
@@ -68,6 +69,7 @@ export default function ProductList() {
         <table className="w-full bg-white rounded shadow-sm">
           <thead>
             <tr className="border-b text-left text-sm text-gray-600">
+              <th className="p-3"></th>
               <th className="p-3">Name</th>
               <th className="p-3">SKU</th>
               <th className="p-3">Category</th>
@@ -79,6 +81,17 @@ export default function ProductList() {
           <tbody>
             {products.map((p) => (
               <tr key={p.id} className="border-b hover:bg-gray-50">
+                <td className="p-3">
+                  {p.imageUrl ? (
+                    <img
+                      src={p.imageUrl}
+                      alt={p.name}
+                      className="w-10 h-10 object-cover rounded border"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded border bg-gray-50" />
+                  )}
+                </td>
                 <td className="p-3">
                   <Link to={`/products/${p.id}/edit`} className="text-blue-600 hover:underline">
                     {p.name}
@@ -108,7 +121,7 @@ export default function ProductList() {
             ))}
             {products.length === 0 && (
               <tr>
-                <td colSpan={6} className="p-6 text-center text-gray-400">
+                <td colSpan={7} className="p-6 text-center text-gray-400">
                   No products found.
                 </td>
               </tr>
