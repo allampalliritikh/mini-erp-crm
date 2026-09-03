@@ -83,6 +83,7 @@ model Product {
   stock       Int      @default(0)
   minStock    Int      @default(0)
   location    String?
+  imageUrl    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -124,7 +125,6 @@ model ChallanItem {
   product   Product @relation(fields: [productId], references: [id])
   productId String
 
-  // snapshot fields — spec requires "not only product ID"
   productName String
   productSku  String
   unitPrice   Decimal @db.Decimal(10, 2)

@@ -1,5 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { listProducts, getProductById, createProduct, updateProduct } from "./product.service";
+import { uploadToS3 } from "../../utils/s3";
+import prisma from "../../config/db";
+import multer from "multer";
 
 export async function list(req: Request, res: Response, next: NextFunction) {
   try {
@@ -38,6 +41,33 @@ export async function update(req: Request, res: Response, next: NextFunction) {
   try {
     const product = await updateProduct(req.params.id, req.body);
     res.status(200).json({ success: true, data: product });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function uploadImage(
+  req: Request & { file?: Express.Multer.File },
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    const productId = req.params.id;
+    await getProductById(productId);
+
+    const key = `products/${productId}-${Date.now()}-${req.file.originalname}`;
+    const imageUrl = await uploadToS3(req.file.buffer, key, req.file.mimetype);
+
+    const updated = await prisma.product.update({
+      where: { id: productId },
+      data: { imageUrl },
+    });
+
+    res.status(200).json({ success: true, data: updated });
   } catch (err) {
     next(err);
   }

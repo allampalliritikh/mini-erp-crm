@@ -1,4 +1,4 @@
-// TODO: hashPassword(plain), comparePassword(plain, hash) using bcryptjs
+
 import bcrypt from "bcryptjs";
 
 const SALT_ROUNDS = 10;
