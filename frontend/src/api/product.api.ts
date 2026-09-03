@@ -15,3 +15,11 @@ export function createProduct(data: any) {
 export function updateProduct(id: string, data: any) {
   return api.put(`/products/${id}`, data);
 }
+
+export function uploadProductImage(id: string, file: File) {
+  const formData = new FormData();
+  formData.append("image", file);
+  return api.post(`/products/${id}/image`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+}

@@ -1,6 +1,6 @@
 import { useState, useEffect, FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getProduct, createProduct, updateProduct } from "../../api/product.api";
+import { getProduct, createProduct, updateProduct, uploadProductImage } from "../../api/product.api";
 
 export default function ProductForm() {
   const { id } = useParams();
@@ -16,8 +16,11 @@ export default function ProductForm() {
     minStock: "0",
     location: "",
   });
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     if (isEdit && id) {
@@ -32,12 +35,28 @@ export default function ProductForm() {
           minStock: String(p.minStock ?? 0),
           location: p.location || "",
         });
+        setImageUrl(p.imageUrl || null);
       });
     }
   }, [id]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm({ ...form, [e.target.name]: e.target.value });
+  }
+
+  async function handleImageUpload() {
+    if (!imageFile || !id) return;
+    setUploadingImage(true);
+    setError("");
+    try {
+      const res = await uploadProductImage(id, imageFile);
+      setImageUrl(res.data.data.imageUrl);
+      setImageFile(null);
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to upload image");
+    } finally {
+      setUploadingImage(false);
+    }
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -74,6 +93,35 @@ export default function ProductForm() {
 
       {error && (
         <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm">{error}</div>
+      )}
+
+      {isEdit && (
+        <div className="bg-white p-6 rounded shadow-sm mb-4">
+          <label className="block text-sm font-medium mb-2">Product Image</label>
+          {imageUrl && (
+            <img
+              src={imageUrl}
+              alt="Product"
+              className="w-32 h-32 object-cover rounded border mb-3"
+            />
+          )}
+          <div className="flex gap-2 items-center">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+              className="text-sm"
+            />
+            <button
+              type="button"
+              onClick={handleImageUpload}
+              disabled={!imageFile || uploadingImage}
+              className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700 disabled:opacity-50"
+            >
+              {uploadingImage ? "Uploading..." : "Upload"}
+            </button>
+          </div>
+        </div>
       )}
 
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-sm space-y-4">
